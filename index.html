@@ -665,26 +665,20 @@
                     </div>
 
                     <div class="mt-12 bg-blue-100 p-8 rounded-xl shadow-md text-center border border-blue-200">
-                        <h3 class="text-3xl font-bold mb-4 text-blue-900">Generate a Testimonial!</h3>
-                        <p class="text-gray-700 mb-6">Enter a short summary of feedback to generate a full testimonial.
-                        </p>
-                        <textarea id="testimonial-prompt" rows="3"
-                            class="w-full p-3 rounded-lg border border-blue-300 focus:outline-none focus:ring-2 focus:ring-cyan-500 mb-4 text-gray-800"
-                            placeholder="e.g., 'Great designer, very professional and delivered on time.'"></textarea>
-                        <input type="text" id="testimonial-author"
-                            class="w-full md:w-2/3 p-3 rounded-lg border border-blue-300 focus:outline-none focus:ring-2 focus:ring-cyan-500 mb-4 text-gray-800"
-                            placeholder="Author Name, Title (Optional)">
-                        <button id="generate-testimonial-btn" class="btn-ai flex items-center justify-center mx-auto">
-                            <span id="testimonial-spinner" class="hidden spinner mr-2"></span>
-                            Generate Testimonial ✨
-                        </button>
-                        <p id="testimonial-error-message" class="text-red-500 mt-4 hidden"></p>
-                        <div id="generated-testimonial-container"
-                            class="mt-8 hidden bg-white p-6 rounded-lg shadow-md border-t-4 border-orange-500 text-left">
-                            <h4 class="text-xl font-semibold mb-4 text-blue-800">Generated Testimonial:</h4>
-                            <p id="generated-testimonial-text" class="text-gray-700 italic mb-4"></p>
-                            <p id="generated-testimonial-author" class="font-semibold text-blue-800"></p>
-                        </div>
+                        <h3 class="text-3xl font-bold mb-4 text-blue-900">Manually Add a Testimonial</h3>
+                        <p class="text-gray-700 mb-6">Write a testimonial to add it to your website.</p>
+                        <form id="add-testimonial-form" class="space-y-4">
+                            <textarea id="testimonial-text" rows="3"
+                                class="w-full p-3 rounded-lg border border-blue-300 focus:outline-none focus:ring-2 focus:ring-cyan-500 text-gray-800"
+                                placeholder="Write the testimonial here..." required></textarea>
+                            <input type="text" id="testimonial-author"
+                                class="w-full p-3 rounded-lg border border-blue-300 focus:outline-none focus:ring-2 focus:ring-cyan-500 mb-4 text-gray-800"
+                                placeholder="Author Name, Title (Optional)" required>
+                            <button type="submit" id="add-testimonial-btn"
+                                class="btn-primary bg-orange-500 text-white px-8 py-3 rounded-full text-lg font-semibold shadow-md hover:bg-orange-600">
+                                Add Testimonial
+                            </button>
+                        </form>
                     </div>
                 </div>
             </div>
@@ -800,11 +794,8 @@
             </div>
         </div>
     </div>
-
+    
     <script>
-      
-        const GOOGLE_API_KEY = "AIzaSyCuR0YjR-BpT1R0VCQZ2U2Tmyj3jJvivPg";
-
         // Project data: A list of objects, each representing a project with its details.
         const projects = [
             {
@@ -863,7 +854,6 @@
         // Get DOM elements for mobile navigation.
         const mobileMenuButton = document.getElementById('mobile-menu-button');
         const mobileMenu = document.getElementById('mobile-menu');
-        const desktopMenu = document.getElementById('desktop-menu');
         const navLinks = document.querySelectorAll('nav a'); // All navigation links
 
         // Event listener to toggle mobile menu visibility.
@@ -879,28 +869,7 @@
                 }
             });
         });
-
-        // Get DOM elements for resume download links.
-        const resumeLink = document.getElementById('resume-link');
-        const mobileResumeLink = document.getElementById('mobile-resume-link');
-
-        // Define the URL for the resume PDF. Replace with your actual resume link.
-        const resumePdfUrl = "https://example.com/your-resume.pdf";
-
-        // Add click event listeners to resume links to open the PDF in a new tab.
-        if (resumeLink) {
-            resumeLink.addEventListener('click', (e) => {
-                e.preventDefault(); // Prevent default link behavior.
-                window.open(resumePdfUrl, '_blank'); // Open PDF in new tab.
-            });
-        }
-        if (mobileResumeLink) {
-            mobileResumeLink.addEventListener('click', (e) => {
-                e.preventDefault(); // Prevent default link behavior.
-                window.open(resumePdfUrl, '_blank'); // Open PDF in new tab.
-            });
-        }
-
+        
         // Get DOM elements for project modal and its interactive elements.
         const projectCards = document.querySelectorAll('.project-card');
         const projectModal = document.getElementById('project-modal');
@@ -992,9 +961,6 @@
         // Event listener for contact form submission.
         contactForm.addEventListener('submit', (e) => {
             e.preventDefault(); // Prevent the default form submission (page reload).
-
-          
-
             contactForm.reset(); // Clear all input fields in the form.
             contactSuccessMessage.classList.remove('hidden'); // Show the success message.
 
@@ -1012,178 +978,67 @@
         const textSpinner = document.getElementById('text-spinner');
         const textErrorMessage = document.getElementById('text-error-message');
 
-        // Event listener to generate a blog idea using the Gemini API.
+        // Event listener to generate a blog idea using a placeholder.
         generateTextBtn.addEventListener('click', async () => {
-            const prompt = textPromptInput.value.trim(); // Get the user's prompt and remove leading/trailing whitespace.
+            const prompt = textPromptInput.value.trim();
             if (!prompt) {
                 textErrorMessage.textContent = "Please enter a prompt for blog idea generation.";
                 textErrorMessage.classList.remove('hidden');
-                return; // Stop execution if no prompt is provided.
+                return;
             }
 
-            textErrorMessage.classList.add('hidden'); // Hide any previous error messages.
-            generatedTextContainer.classList.add('hidden'); // Hide any previously generated text.
-            textSpinner.classList.remove('hidden'); // Show the loading spinner.
-            generateTextBtn.disabled = true; // Disable the button to prevent multiple submissions.
+            textErrorMessage.classList.add('hidden');
+            generatedTextContainer.classList.add('hidden');
+            textSpinner.classList.remove('hidden');
+            generateTextBtn.disabled = true;
 
-            try {
-                // Prepare the request payload for the Gemini API.
-                let chatHistory = [];
-                chatHistory.push({ role: "user", parts: [{ text: `Generate a short blog post idea (title and a brief paragraph) about web development or UX/UI design related to: ${prompt}` }] });
-                const payload = { contents: chatHistory };
-                const apiKey = GOOGLE_API_KEY; // Your Gemini API key.
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
-
-                // Send the API request.
-                const response = await fetch(apiUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-
-                // Check if the API response was successful.
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    console.error('API Error Response:', errorData);
-                    throw new Error(`HTTP error! status: ${response.status}, message: ${errorData.error?.message || 'Unknown error'}`);
-                }
-
-                const result = await response.json(); // Parse the JSON response.
-
-                // Extract and display the generated text if available.
-                if (result.candidates && result.candidates.length > 0 &&
-                    result.candidates[0].content && result.candidates[0].content.parts &&
-                    result.candidates[0].content.parts.length > 0) {
-                    const text = result.candidates[0].content.parts[0].text;
-                    generatedText.textContent = text;
-                    generatedTextContainer.classList.remove('hidden'); // Show the container with the generated text.
-                } else {
-                    textErrorMessage.textContent = "Failed to generate text. Unexpected API response structure.";
-                    textErrorMessage.classList.remove('hidden');
-                    console.error("Text generation failed: Unexpected response structure", result);
-                }
-            } catch (error) {
-                textErrorMessage.textContent = `An error occurred during text generation: ${error.message}`;
-                textErrorMessage.classList.remove('hidden');
-                console.error("Error generating text:", error);
-            } finally {
-                textSpinner.classList.add('hidden'); // Hide the loading spinner.
-                generateTextBtn.disabled = false; // Re-enable the button.
-            }
+            setTimeout(() => {
+                const placeholderText = "Blog Post Idea: The Role of UX in Modern Web Development. This article will explore how user experience (UX) design has become a critical component of successful web development. It will cover key principles, tools, and best practices for creating engaging and intuitive websites.";
+                generatedText.textContent = placeholderText;
+                generatedTextContainer.classList.remove('hidden');
+                textSpinner.classList.add('hidden');
+                generateTextBtn.disabled = false;
+            }, 1000);
         });
 
-        // Event listener to enhance project description using the Gemini API.
-        enhanceDescriptionBtn.addEventListener('click', async () => {
-            if (!currentProject) return; // Exit if no project is selected.
+        // Event listener to enhance project description using a placeholder.
+        const placeholderDescription = "This project was a complete redesign of an existing platform, focusing on enhancing the user experience. By conducting extensive research and usability testing, we were able to identify key pain points and create an intuitive, user-friendly interface. The new design not only improved navigation but also led to a significant increase in user engagement and satisfaction.";
 
-            enhanceDescErrorMessage.classList.add('hidden'); // Hide previous error messages.
-            enhanceDescSpinner.classList.remove('hidden'); // Show loading spinner.
-            enhanceDescriptionBtn.disabled = true; // Disable current button.
-            generateHeadlineBtn.disabled = true; // Disable other AI buttons during generation.
+        enhanceDescriptionBtn.addEventListener('click', () => {
+            if (!currentProject) return;
 
-            try {
-                const prompt = `Enhance and expand the following project description for a professional portfolio website. Make it more detailed and engaging, focusing on the impact and process:
-                        Title: ${currentProject.title}
-                        Short Description: ${currentProject.shortDescription}`;
+            enhanceDescErrorMessage.classList.add('hidden');
+            enhanceDescSpinner.classList.remove('hidden');
+            enhanceDescriptionBtn.disabled = true;
+            generateHeadlineBtn.disabled = true;
 
-                let chatHistory = [];
-                chatHistory.push({ role: "user", parts: [{ text: prompt }] });
-                const payload = { contents: chatHistory };
-                const apiKey = GOOGLE_API_KEY;
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
-
-                const response = await fetch(apiUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    console.error('API Error Response:', errorData);
-                    throw new Error(`HTTP error! status: ${response.status}, message: ${errorData.error?.message || 'Unknown error'}`);
-                }
-
-                const result = await response.json();
-
-                if (result.candidates && result.candidates.length > 0 &&
-                    result.candidates[0].content && result.candidates[0].content.parts &&
-                    result.candidates[0].content.parts.length > 0) {
-                    const enhancedText = result.candidates[0].content.parts[0].text;
-                    modalProjectDescription.textContent = enhancedText; // Update the project description in the modal.
-                } else {
-                    enhanceDescErrorMessage.textContent = "Failed to enhance description. Unexpected API response structure.";
-                    enhanceDescErrorMessage.classList.remove('hidden');
-                    console.error("Description enhancement failed: Unexpected response structure", result);
-                }
-            } catch (error) {
-                enhanceDescErrorMessage.textContent = `An error occurred during description enhancement: ${error.message}`;
-                enhanceDescErrorMessage.classList.remove('hidden');
-                console.error("Error enhancing description:", error);
-            } finally {
-                enhanceDescSpinner.classList.add('hidden'); // Hide loading spinner.
-                enhanceDescriptionBtn.disabled = false; // Re-enable current button.
-                generateHeadlineBtn.disabled = false; // Re-enable other AI button.
-            }
+            setTimeout(() => {
+                modalProjectDescription.textContent = placeholderDescription;
+                enhanceDescSpinner.classList.add('hidden');
+                enhanceDescriptionBtn.disabled = false;
+                generateHeadlineBtn.disabled = false;
+            }, 1000);
         });
 
-        // Event listener to generate a project headline using the Gemini API.
-        generateHeadlineBtn.addEventListener('click', async () => {
-            if (!currentProject) return; // Exit if no project is selected.
+        // Event listener to generate a project headline using a placeholder.
+        generateHeadlineBtn.addEventListener('click', () => {
+            if (!currentProject) return;
 
-            enhanceDescErrorMessage.classList.add('hidden'); // Hide previous error messages.
-            generatedHeadlineDisplay.classList.add('hidden'); // Hide previous generated headline.
-            generateHeadlineSpinner.classList.remove('hidden'); // Show loading spinner.
-            generateHeadlineBtn.disabled = true; // Disable current button.
-            enhanceDescriptionBtn.disabled = true; // Disable other AI button during generation.
+            enhanceDescErrorMessage.classList.add('hidden');
+            generatedHeadlineDisplay.classList.add('hidden');
+            generateHeadlineSpinner.classList.remove('hidden');
+            generateHeadlineBtn.disabled = true;
+            enhanceDescriptionBtn.disabled = true;
 
-            try {
-                const prompt = `Generate a short, impactful, and professional headline (max 10 words) for a portfolio project based on this title and short description:
-                        Title: ${currentProject.title}
-                        Short Description: ${currentProject.shortDescription}`;
-
-                let chatHistory = [];
-                chatHistory.push({ role: "user", parts: [{ text: prompt }] });
-                const payload = { contents: chatHistory };
-                const apiKey = GOOGLE_API_KEY;
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
-
-                const response = await fetch(apiUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    console.error('API Error Response:', errorData);
-                    throw new Error(`HTTP error! status: ${response.status}, message: ${errorData.error?.message || 'Unknown error'}`);
-                }
-
-                const result = await response.json();
-
-                if (result.candidates && result.candidates.length > 0 &&
-                    result.candidates[0].content && result.candidates[0].content.parts &&
-                    result.candidates[0].content.parts.length > 0) {
-                    const generatedHeadline = result.candidates[0].content.parts[0].text;
-                    generatedHeadlineDisplay.textContent = `Suggested Headline: "${generatedHeadline.replace(/"/g, '')}"`; // Display headline, removing extra quotes.
-                    generatedHeadlineDisplay.classList.remove('hidden'); // Show the headline display.
-                } else {
-                    enhanceDescErrorMessage.textContent = "Failed to generate headline. Unexpected API response structure.";
-                    enhanceDescErrorMessage.classList.remove('hidden');
-                    console.error("Headline generation failed: Unexpected response structure", result);
-                }
-            } catch (error) {
-                enhanceDescErrorMessage.textContent = `An error occurred during headline generation: ${error.message}`;
-                enhanceDescErrorMessage.classList.remove('hidden');
-                console.error("Error generating headline:", error);
-            } finally {
-                generateHeadlineSpinner.classList.add('hidden'); // Hide loading spinner.
-                generateHeadlineBtn.disabled = false; // Re-enable current button.
-                enhanceDescriptionBtn.disabled = false; // Re-enable other AI button.
-            }
+            setTimeout(() => {
+                const placeholderHeadline = "Intuitive & Dynamic Web Interface Redesign";
+                generatedHeadlineDisplay.textContent = `Suggested Headline: "${placeholderHeadline}"`;
+                generatedHeadlineDisplay.classList.remove('hidden');
+                generateHeadlineSpinner.classList.add('hidden');
+                generateHeadlineBtn.disabled = false;
+                enhanceDescriptionBtn.disabled = false;
+            }, 1000);
         });
-
 
         // Get DOM elements for the "About Me" section's expand/summarize buttons.
         const expandAboutMeBtn = document.getElementById('expand-about-me-btn');
@@ -1191,354 +1046,162 @@
         const expandAboutSpinner = document.getElementById('expand-about-spinner');
         const summarizeAboutSpinner = document.getElementById('summarize-about-spinner');
         const aboutMeErrorMessage = document.getElementById('about-me-error-message');
-
-        // Event listener to expand the "About Me" text using the Gemini API.
-        expandAboutMeBtn.addEventListener('click', async () => {
-            aboutMeErrorMessage.classList.add('hidden'); // Hide previous error messages.
-            expandAboutSpinner.classList.remove('hidden'); // Show loading spinner.
-            expandAboutMeBtn.disabled = true; // Disable both buttons during generation.
+        const originalAboutMeTextElement = aboutMeTextElement.textContent;
+        
+        // Placeholder text for expand/summarize functionality
+        const expandedText = "I'm Pankaj Kumar Singh, a dedicated and versatile Full Stack Developer with a solid foundation in modern web technologies. My journey began with a fascination for how clean, elegant code can create powerful and intuitive user experiences. I specialize in building robust web applications from the ground up, utilizing a tech stack that includes HTML, CSS, and JavaScript for dynamic front-end interfaces, and Python with Flask, as well as MySQL, for scalable and secure back-end systems. My experience extends to developing a range of projects, from a secure Online Voting System to a feature-rich Hotel Booking App and a visually appealing Netflix Clone, showcasing my ability to tackle diverse challenges. I am a lifelong learner, always eager to explore new frameworks and tools to enhance my skill set and stay at the forefront of the industry. Outside of my professional life, my hobbies in singing, playing chess, and photography provide a creative outlet that fuels my problem-solving approach. I am currently seeking a role where I can contribute my skills to a forward-thinking team and continue my professional growth.";
+        const summarizedText = "I'm a passionate Full Stack Developer with experience in building web applications using HTML, CSS, JavaScript, Python, and MySQL. I love creating user-friendly interfaces and solving real-world problems. My projects include an Online Voting System and a Netflix Clone. I'm actively looking for opportunities to grow and contribute to impactful projects.";
+        
+        // Event listener to expand the "About Me" text using a placeholder.
+        expandAboutMeBtn.addEventListener('click', () => {
+            aboutMeErrorMessage.classList.add('hidden');
+            expandAboutSpinner.classList.remove('hidden');
+            expandAboutMeBtn.disabled = true;
             summarizeAboutMeBtn.disabled = true;
-
-            try {
-                const currentText = aboutMeTextElement.textContent; // Get the current text content.
-                const prompt = `Expand the following "About Me" section for a professional portfolio website. Make it more detailed and engaging, adding more depth to the professional journey, passions, and unique perspective. Keep the tone professional yet personal.
-                        Current text: ${currentText}`;
-
-                let chatHistory = [];
-                chatHistory.push({ role: "user", parts: [{ text: prompt }] });
-                const payload = { contents: chatHistory };
-                const apiKey = GOOGLE_API_KEY;
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
-
-                const response = await fetch(apiUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    console.error('API Error Response:', errorData);
-                    throw new Error(`HTTP error! status: ${response.status}, message: ${errorData.error?.message || 'Unknown error'}`);
-                }
-
-                const result = await response.json();
-
-                if (result.candidates && result.candidates.length > 0 &&
-                    result.candidates[0].content && result.candidates[0].content.parts &&
-                    result.candidates[0].content.parts.length > 0) {
-                    const expandedText = result.candidates[0].content.parts[0].text;
-                    aboutMeTextElement.textContent = expandedText; // Update the "About Me" section with expanded text.
-                } else {
-                    aboutMeErrorMessage.textContent = "Failed to expand 'About Me' section. Unexpected API response structure.";
-                    aboutMeErrorMessage.classList.remove('hidden');
-                    console.error("About Me expansion failed: Unexpected response structure", result);
-                }
-            } catch (error) {
-                aboutMeErrorMessage.textContent = `An error occurred during 'About Me' expansion: ${error.message}`;
-                aboutMeErrorMessage.classList.remove('hidden');
-                console.error("Error expanding About Me:", error);
-            } finally {
-                expandAboutSpinner.classList.add('hidden'); // Hide loading spinner.
-                expandAboutMeBtn.disabled = false; // Re-enable buttons.
+        
+            setTimeout(() => {
+                aboutMeTextElement.textContent = expandedText;
+                expandAboutSpinner.classList.add('hidden');
+                expandAboutMeBtn.disabled = false;
                 summarizeAboutMeBtn.disabled = false;
-            }
+            }, 1000);
         });
 
-        // Event listener to summarize the "About Me" text using the Gemini API.
-        summarizeAboutMeBtn.addEventListener('click', async () => {
-            aboutMeErrorMessage.classList.add('hidden'); // Hide previous error messages.
-            summarizeAboutSpinner.classList.remove('hidden'); // Show loading spinner.
-            expandAboutMeBtn.disabled = true; // Disable both buttons during generation.
+        // Event listener to summarize the "About Me" text using a placeholder.
+        summarizeAboutMeBtn.addEventListener('click', () => {
+            aboutMeErrorMessage.classList.add('hidden');
+            summarizeAboutSpinner.classList.remove('hidden');
+            expandAboutMeBtn.disabled = true;
             summarizeAboutMeBtn.disabled = true;
 
-            try {
-                const currentText = aboutMeTextElement.textContent; // Get the current text content.
-                const prompt = `Summarize the following "About Me" section for a professional portfolio website. Make it concise and to the point, highlighting key professional aspects.
-                        Current text: ${currentText}`;
-
-                let chatHistory = [];
-                chatHistory.push({ role: "user", parts: [{ text: prompt }] });
-                const payload = { contents: chatHistory };
-                const apiKey = GOOGLE_API_KEY;
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
-
-                const response = await fetch(apiUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    console.error('API Error Response:', errorData);
-                    throw new Error(`HTTP error! status: ${response.status}, message: ${errorData.error?.message || 'Unknown error'}`);
-                }
-
-                const result = await response.json();
-
-                if (result.candidates && result.candidates.length > 0 &&
-                    result.candidates[0].content && result.candidates[0].content.parts &&
-                    result.candidates[0].content.parts.length > 0) {
-                    const summarizedText = result.candidates[0].content.parts[0].text;
-                    aboutMeTextElement.textContent = summarizedText; // Update the "About Me" section with summarized text.
-                } else {
-                    aboutMeErrorMessage.textContent = "Failed to summarize 'About Me' section. Unexpected API response structure.";
-                    aboutMeErrorMessage.classList.remove('hidden');
-                    console.error("About Me summarization failed: Unexpected response structure", result);
-                }
-            } catch (error) {
-                aboutMeErrorMessage.textContent = `An error occurred during 'About Me' summarization: ${error.message}`;
-                aboutMeErrorMessage.classList.remove('hidden');
-                console.error("Error summarizing About Me:", error);
-            } finally {
-                summarizeAboutSpinner.classList.add('hidden'); // Hide loading spinner.
-                expandAboutMeBtn.disabled = false; // Re-enable buttons.
+            setTimeout(() => {
+                aboutMeTextElement.textContent = summarizedText;
+                summarizeAboutSpinner.classList.add('hidden');
+                expandAboutMeBtn.disabled = false;
                 summarizeAboutMeBtn.disabled = false;
-            }
+            }, 1000);
         });
-
 
         // Get all buttons for generating skill descriptions.
         const generateSkillDescBtns = document.querySelectorAll('.generate-skill-desc-btn');
 
+        // Placeholder descriptions for skills.
+        const skillDescriptions = {
+            "Python": "Python is a versatile language used in web development, data science, and automation, valued for its clean syntax and extensive libraries.",
+            "Node.js": "Node.js is a powerful JavaScript runtime that enables the development of scalable, high-performance server-side applications and APIs.",
+            "MYSQL": "MySQL is a foundational relational database management system, essential for structuring, storing, and retrieving data for web applications.",
+            "Java Basics": "A grasp of Java basics is crucial for building robust, enterprise-level applications and is a key skill for back-end development.",
+            "HTML/CSS": "HTML and CSS are the building blocks of the web, defining the structure and style of every webpage to create a visually appealing experience.",
+            "JavaScript": "JavaScript is the core language of the web, enabling dynamic and interactive features that bring websites to life.",
+            "React (Basics)": "React is a popular JavaScript library for building component-based user interfaces, providing an efficient way to manage complex UIs."
+        };
+
         // Add a click event listener to each skill description generation button.
         generateSkillDescBtns.forEach(button => {
-            button.addEventListener('click', async (event) => {
-                const skillName = event.currentTarget.dataset.skill; // Get the skill name from the button's data attribute.
-                const skillContainer = event.currentTarget.closest('.flex.items-center'); // Get the parent container.
-                const skillDescriptionElement = skillContainer.nextElementSibling; // Get the <p> tag for the description.
-                const skillSpinner = document.createElement('span'); // Create a new spinner element.
+            button.addEventListener('click', (event) => {
+                const skillName = event.currentTarget.dataset.skill;
+                const skillContainer = event.currentTarget.closest('.flex.items-center');
+                const skillDescriptionElement = skillContainer.nextElementSibling;
+                const skillSpinner = document.createElement('span');
                 skillSpinner.className = 'spinner ml-2';
-                event.currentTarget.appendChild(skillSpinner); // Append the spinner next to the button.
-                event.currentTarget.disabled = true; // Disable the button during generation.
+                event.currentTarget.appendChild(skillSpinner);
+                event.currentTarget.disabled = true;
 
-                skillDescriptionElement.classList.add('hidden'); // Hide any previous description.
-                skillDescriptionElement.textContent = ''; // Clear any previous text.
+                skillDescriptionElement.classList.add('hidden');
+                skillDescriptionElement.textContent = '';
 
-                try {
-                    const prompt = `Provide a concise, professional explanation of why "${skillName}" is an important skill for a web developer, in one to two sentences.`;
-
-                    let chatHistory = [];
-                    chatHistory.push({ role: "user", parts: [{ text: prompt }] });
-                    const payload = { contents: chatHistory };
-                    const apiKey = GOOGLE_API_KEY;
-                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
-
-                    const response = await fetch(apiUrl, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
-                    });
-
-                    if (!response.ok) {
-                        const errorData = await response.json();
-                        console.error('API Error Response:', errorData);
-                        throw new Error(`HTTP error! status: ${response.status}, message: ${errorData.error?.message || 'Unknown error'}`);
-                    }
-
-                    const result = await response.json();
-
-                    if (result.candidates && result.candidates.length > 0 &&
-                        result.candidates[0].content && result.candidates[0].content.parts &&
-                        result.candidates[0].content.parts.length > 0) {
-                        const description = result.candidates[0].content.parts[0].text;
-                        skillDescriptionElement.textContent = description; // Update the skill description.
-                        skillDescriptionElement.classList.remove('hidden'); // Show the description.
-                    } else {
-                        skillDescriptionElement.textContent = "Failed to generate description. Unexpected API response structure.";
-                        skillDescriptionElement.classList.remove('hidden');
-                        console.error(`Skill description generation failed for ${skillName}: Unexpected response structure`, result);
-                    }
-                } catch (error) {
-                    skillDescriptionElement.textContent = `Error generating description: ${error.message}`;
+                setTimeout(() => {
+                    const description = skillDescriptions[skillName] || "Description not available.";
+                    skillDescriptionElement.textContent = description;
                     skillDescriptionElement.classList.remove('hidden');
-                    console.error(`Error generating skill description for ${skillName}:`, error);
-                } finally {
-                    skillSpinner.remove(); // Remove the spinner from the DOM.
-                    event.currentTarget.disabled = false; // Re-enable the button.
-                }
+                    skillSpinner.remove();
+                    event.currentTarget.disabled = false;
+                }, 1000);
             });
         });
 
         // Get all buttons for generating service descriptions.
         const generateServiceDescBtns = document.querySelectorAll('.generate-service-desc-btn');
 
+        // Placeholder descriptions for services.
+        const serviceDescriptions = {
+            "Website Development": "I craft modern, responsive websites for businesses and individuals, ensuring a seamless user experience across all devices. My focus is on delivering high-performance sites that are not only visually appealing but also optimized for speed and search engines.",
+            "Portfolio & Resume Website Creation": "I specialize in building professional portfolio and resume websites that effectively showcase your unique skills and projects. I design sites that are easy to navigate and make a powerful first impression on potential employers and clients.",
+            "Backend Development": "I provide expert backend development services, focusing on server-side logic, API creation, and database management. I ensure your web application's foundation is secure, efficient, and scalable to support future growth.",
+            "Database Design & SQL Query": "I offer comprehensive database design and optimization services. I will create a robust schema for your project and write clean, efficient SQL queries to ensure data integrity and fast retrieval."
+        };
+
         // Add a click event listener to each service description generation button.
         generateServiceDescBtns.forEach(button => {
-            button.addEventListener('click', async (event) => {
-                const serviceCard = event.currentTarget.closest('.service-card'); // Get the parent service card.
-                const serviceTitle = serviceCard.querySelector('h3').textContent; // Get the service title.
-                const serviceDescriptionTextElement = serviceCard.querySelector('.service-description-text'); // Get the <p> tag for the description.
-                const serviceDescErrorElement = serviceCard.querySelector('.service-desc-error'); // Get the error message element.
-                const serviceSpinner = event.currentTarget.querySelector('.spinner'); // Get the spinner element within the button.
+            button.addEventListener('click', (event) => {
+                const serviceCard = event.currentTarget.closest('.service-card');
+                const serviceTitle = serviceCard.querySelector('h3').textContent;
+                const serviceDescriptionTextElement = serviceCard.querySelector('.service-description-text');
+                const serviceSpinner = event.currentTarget.querySelector('.spinner');
 
-                serviceDescErrorElement.classList.add('hidden'); // Hide any previous error messages.
-                serviceSpinner.classList.remove('hidden'); // Show the loading spinner.
-                event.currentTarget.disabled = true; // Disable the button during generation.
+                serviceSpinner.classList.remove('hidden');
+                event.currentTarget.disabled = true;
 
-                try {
-                    const prompt = `Generate a detailed, professional, and engaging description for a portfolio service titled "${serviceTitle}". Focus on the value provided to clients. Keep it concise, around 3-4 sentences.`;
-
-                    let chatHistory = [];
-                    chatHistory.push({ role: "user", parts: [{ text: prompt }] });
-                    const payload = { contents: chatHistory };
-                    const apiKey = GOOGLE_API_KEY;
-                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
-
-                    const response = await fetch(apiUrl, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
-                    });
-
-                    if (!response.ok) {
-                        const errorData = await response.json();
-                        console.error('API Error Response:', errorData);
-                        throw new Error(`HTTP error! status: ${response.status}, message: ${errorData.error?.message || 'Unknown error'}`);
-                    }
-
-                    const result = await response.json();
-
-                    if (result.candidates && result.candidates.length > 0 &&
-                        result.candidates[0].content && result.candidates[0].content.parts &&
-                        result.candidates[0].content.parts.length > 0) {
-                        const generatedDescription = result.candidates[0].content.parts[0].text;
-                        serviceDescriptionTextElement.textContent = generatedDescription; // Update the service description.
-                    } else {
-                        serviceDescErrorElement.textContent = "Failed to generate description. Unexpected API response structure.";
-                        serviceDescErrorElement.classList.remove('hidden');
-                        console.error(`Service description generation failed for ${serviceTitle}: Unexpected response structure`, result);
-                    }
-                } catch (error) {
-                    serviceDescErrorElement.textContent = `Error generating description: ${error.message}`;
-                    serviceDescErrorElement.classList.remove('hidden');
-                    console.error(`Error generating service description for ${serviceTitle}:`, error);
-                } finally {
-                    serviceSpinner.classList.add('hidden'); // Hide loading spinner.
-                    event.currentTarget.disabled = false; // Re-enable the button.
-                }
+                setTimeout(() => {
+                    const generatedDescription = serviceDescriptions[serviceTitle.trim()] || "Description not available.";
+                    serviceDescriptionTextElement.textContent = generatedDescription;
+                    serviceSpinner.classList.add('hidden');
+                    event.currentTarget.disabled = false;
+                }, 1000);
             });
         });
-
-        // Get DOM elements for the testimonial generation feature.
-        const generateTestimonialBtn = document.getElementById('generate-testimonial-btn');
-        const testimonialPromptInput = document.getElementById('testimonial-prompt');
+        
+        // Get DOM elements for the testimonial form and grid
+        const addTestimonialForm = document.getElementById('add-testimonial-form');
+        const testimonialTextarea = document.getElementById('testimonial-text');
         const testimonialAuthorInput = document.getElementById('testimonial-author');
-        const testimonialSpinner = document.getElementById('testimonial-spinner');
-        const testimonialErrorMessage = document.getElementById('testimonial-error-message');
-        const generatedTestimonialContainer = document.getElementById('generated-testimonial-container');
-        const generatedTestimonialText = document.getElementById('generated-testimonial-text');
-        const generatedTestimonialAuthor = document.getElementById('generated-testimonial-author');
-        const testimonialsGrid = document.getElementById('testimonials-grid'); // The grid where testimonials are displayed.
+        const testimonialsGrid = document.getElementById('testimonials-grid');
 
-        // Event listener to generate a testimonial using the Gemini API.
-        generateTestimonialBtn.addEventListener('click', async () => {
-            const feedbackSummary = testimonialPromptInput.value.trim(); // Get user feedback summary.
-            const authorInfo = testimonialAuthorInput.value.trim(); // Get author information.
+        // Add a submit event listener to the form for adding a testimonial
+        addTestimonialForm.addEventListener('submit', (event) => {
+            event.preventDefault();
 
-            if (!feedbackSummary) {
-                testimonialErrorMessage.textContent = "Please provide a summary of the feedback.";
-                testimonialErrorMessage.classList.remove('hidden');
-                return; // Stop execution if no feedback is provided.
+            const testimonialText = testimonialTextarea.value.trim();
+            const author = testimonialAuthorInput.value.trim() || 'Anonymous Client';
+
+            if (testimonialText === '') {
+                alert('Please write a testimonial before submitting.');
+                return;
             }
 
-            testimonialErrorMessage.classList.add('hidden'); // Hide previous error messages.
-            generatedTestimonialContainer.classList.add('hidden'); // Hide previous generated testimonial.
-            testimonialSpinner.classList.remove('hidden'); // Show loading spinner.
-            generateTestimonialBtn.disabled = true; // Disable the button during generation.
+            // Create a new testimonial card element
+            const newTestimonialCard = document.createElement('div');
+            newTestimonialCard.className = "bg-white p-6 rounded-lg shadow-md border-t-4 border-orange-500";
+            newTestimonialCard.innerHTML = `
+                <p class="text-gray-700 italic mb-4">"${testimonialText}"</p>
+                <p class="font-semibold text-blue-800">- ${author}</p>
+            `;
 
-            try {
-                const prompt = `Generate a professional client testimonial for a web developer based on this feedback: "${feedbackSummary}". If provided, include the author as "${authorInfo}". Make it sound authentic and positive, around 3-5 sentences.`;
+            // Prepend the new card to the top of the grid
+            testimonialsGrid.prepend(newTestimonialCard);
 
-                let chatHistory = [];
-                chatHistory.push({ role: "user", parts: [{ text: prompt }] });
-                const payload = { contents: chatHistory };
-                const apiKey = GOOGLE_API_KEY;
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
-
-                const response = await fetch(apiUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    console.error('API Error Response:', errorData);
-                    throw new Error(`HTTP error! status: ${response.status}, message: ${errorData.error?.message || 'Unknown error'}`);
-                }
-
-                const result = await response.json();
-
-                if (result.candidates && result.candidates.length > 0 &&
-                    result.candidates[0].content && result.candidates[0].content.parts &&
-                    result.candidates[0].content.parts.length > 0) {
-                    const generatedTestimonial = result.candidates[0].content.parts[0].text;
-
-                    let testimonialText = generatedTestimonial;
-                    let testimonialAuthor = authorInfo || "Anonymous Client"; // Default to "Anonymous Client" if no author is provided.
-
-                    // Attempt to parse author from the generated text if the user didn't provide one.
-                    const authorMatch = generatedTestimonial.match(/-(.+), (.+)/);
-                    if (authorMatch && authorInfo === "") {
-                        testimonialText = generatedTestimonial.substring(0, authorMatch.index).trim();
-                        testimonialAuthor = authorMatch[1].trim() + ", " + authorMatch[2].trim();
-                    } else if (authorInfo !== "") {
-                        testimonialAuthor = authorInfo; // Prioritize user-provided author info.
-                    } else {
-                        testimonialAuthor = "Anonymous Client"; // Fallback.
-                    }
-
-                    generatedTestimonialText.textContent = testimonialText.replace(/"/g, ''); // Display the testimonial text, removing any extra quotes.
-                    generatedTestimonialAuthor.textContent = `- ${testimonialAuthor}`; // Display the author.
-                    generatedTestimonialContainer.classList.remove('hidden'); // Show the container with the generated testimonial.
-
-                    // Create a new testimonial card and prepend it to the testimonials grid.
-                    const newTestimonialCard = document.createElement('div');
-                    newTestimonialCard.className = "bg-white p-6 rounded-lg shadow-md border-t-4 border-orange-500";
-                    newTestimonialCard.innerHTML = `
-                                <p class="text-gray-700 italic mb-4">"${testimonialText.replace(/"/g, '')}"</p>
-                                <p class="font-semibold text-blue-800">- ${testimonialAuthor}</p>
-                            `;
-                    testimonialsGrid.prepend(newTestimonialCard); // Add to the beginning of the grid.
-
-                    testimonialPromptInput.value = ''; // Clear the feedback input.
-                    testimonialAuthorInput.value = ''; // Clear the author input.
-
-                } else {
-                    testimonialErrorMessage.textContent = "Failed to generate testimonial. Unexpected API response structure.";
-                    testimonialErrorMessage.classList.remove('hidden');
-                    console.error("Testimonial generation failed: Unexpected response structure", result);
-                }
-            } catch (error) {
-                testimonialErrorMessage.textContent = `An error occurred during testimonial generation: ${error.message}`;
-                testimonialErrorMessage.classList.remove('hidden');
-                console.error("Error generating testimonial:", error);
-            } finally {
-                testimonialSpinner.classList.add('hidden'); // Hide loading spinner.
-                generateTestimonialBtn.disabled = false; // Re-enable the button.
-            }
+            // Reset the form fields
+            testimonialTextarea.value = '';
+            testimonialAuthorInput.value = '';
         });
+
 
         // Add smooth scrolling behavior to all internal anchor links.
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             anchor.addEventListener('click', function (e) {
-                e.preventDefault(); // Prevent default jump behavior.
+                e.preventDefault();
 
                 document.querySelector(this.getAttribute('href')).scrollIntoView({
-                    behavior: 'smooth' // Enable smooth scrolling.
+                    behavior: 'smooth'
                 });
             });
         });
 
         // Basic conceptual "404" handling for single-page applications.
-        // If a hash in the URL doesn't correspond to an existing section ID, log a warning.
         window.addEventListener('hashchange', () => {
             const hash = window.location.hash;
             if (hash && !document.querySelector(hash)) {
                 console.warn(`Section for hash "${hash}" not found.`);
-                // In a real application, you might redirect to a 404 page or display a specific error message.
             }
         });
     </script>
